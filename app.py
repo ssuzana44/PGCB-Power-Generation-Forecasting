@@ -38,13 +38,46 @@ pred_col = 'XGBoost_Pred' if "XGBoost" in model_choice else 'LSTM_Pred'
 min_date = df.index.min().date()
 max_date = df.index.max().date()
 
-start_date, end_date = st.sidebar.date_input(
-    "Select Date Range:",
-    value=[min_date, max_date],
-    min_value=min_date,
-    max_value=max_date
+# Preset Range Selector
+date_preset = st.sidebar.selectbox(
+    "Choose a Date Range Preset:",
+    [
+        "All Time (Past 2 Years)", 
+        "Past Week", 
+        "Past Month", 
+        "Past 3 Months", 
+        "Past 6 Months", 
+        "Past Year", 
+        "Custom Range"
+    ]
 )
 
+# Explicitly assign start_date and end_date for ALL choices
+if date_preset == "Past Week":
+    start_date = max_date - pd.Timedelta(days=7)
+    end_date = max_date
+elif date_preset == "Past Month":
+    start_date = max_date - pd.Timedelta(days=30)
+    end_date = max_date
+elif date_preset == "Past 3 Months":
+    start_date = max_date - pd.Timedelta(days=90)
+    end_date = max_date
+elif date_preset == "Past 6 Months":
+    start_date = max_date - pd.Timedelta(days=180)
+    end_date = max_date
+elif date_preset == "Past Year":
+    start_date = max_date - pd.Timedelta(days=365)
+    end_date = max_date
+elif date_preset == "Custom Range":
+    col1, col2 = st.sidebar.columns(2)
+    start_date = col1.date_input("Start Date", value=min_date, min_value=min_date, max_value=max_date)
+    end_date = col2.date_input("End Date", value=max_date, min_value=min_date, max_value=max_date)
+else:
+    # Default fallback for "All Time (Past 2 Years)" and any unmatched strings
+    start_date = min_date
+    end_date = max_date
+
+# Filter DataFrame
 mask = (df.index.date >= start_date) & (df.index.date <= end_date)
 filtered_df = df.loc[mask]
 
